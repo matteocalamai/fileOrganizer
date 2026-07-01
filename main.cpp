@@ -54,7 +54,7 @@ int main()
                 std::cout << "[MOVED] " << fileName << " to images" << std::endl;
             }
 
-            if (docExtensions.contains(fileExtension.string()))
+            else if (docExtensions.contains(fileExtension.string()))
             {
                 fs::create_directory(docFolder);
                 fs::path newPath = docFolder / fileName;
@@ -63,7 +63,7 @@ int main()
                 std::cout << "[MOVED] " << fileName << " to documents" << std::endl;
             }
 
-            if (zipExtensions.contains(fileExtension.string()))
+            else if (zipExtensions.contains(fileExtension.string()))
             {
                 fs::create_directory(zipFolder);
                 fs::path newPath = zipFolder / fileName;

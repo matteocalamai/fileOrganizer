@@ -40,36 +40,43 @@ int main()
             fs::path filePath = element.path();
             fs::path fileName = element.path().filename();
 
-            if (imagesExtensions.contains(fileExtension.string()))
+            try
             {
-                // create the directory if it doesn't already exist
-                fs::create_directory(imagesFolder);
+                if (imagesExtensions.contains(fileExtension.string()))
+                {
+                    // create the directory if it doesn't already exist
+                    fs::create_directory(imagesFolder);
 
-                // define the new file's path
-                fs::path newPath = imagesFolder / fileName;
+                    // define the new file's path
+                    fs::path newPath = imagesFolder / fileName;
 
-                // move the file
-                fs::rename(filePath, newPath);
+                    // move the file
+                    fs::rename(filePath, newPath);
 
-                std::cout << "[MOVED] " << fileName << " to images" << std::endl;
+                    std::cout << "[MOVED] " << fileName << " to images" << std::endl;
+                }
+
+                else if (docExtensions.contains(fileExtension.string()))
+                {
+                    fs::create_directory(docFolder);
+                    fs::path newPath = docFolder / fileName;
+                    fs::rename(filePath, newPath);
+
+                    std::cout << "[MOVED] " << fileName << " to documents" << std::endl;
+                }
+
+                else if (zipExtensions.contains(fileExtension.string()))
+                {
+                    fs::create_directory(zipFolder);
+                    fs::path newPath = zipFolder / fileName;
+                    fs::rename(filePath, newPath);
+
+                    std::cout << "[MOVED] " << fileName << " to zipFiles" << std::endl;
+                }
             }
-
-            else if (docExtensions.contains(fileExtension.string()))
+            catch (const fs::filesystem_error& e)
             {
-                fs::create_directory(docFolder);
-                fs::path newPath = docFolder / fileName;
-                fs::rename(filePath, newPath);
-
-                std::cout << "[MOVED] " << fileName << " to documents" << std::endl;
-            }
-
-            else if (zipExtensions.contains(fileExtension.string()))
-            {
-                fs::create_directory(zipFolder);
-                fs::path newPath = zipFolder / fileName;
-                fs::rename(filePath, newPath);
-
-                std::cout << "[MOVED] " << fileName << " to zipFiles" << std::endl;
+                std::cerr << "[ERROR] Unable to move the file " << fileName << std::endl << "Reason: " << e.what() << std::endl;
             }
         }
     }

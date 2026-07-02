@@ -1,22 +1,67 @@
 #include <filesystem>
 #include <iostream>
 #include <unordered_set>
+#include <string>
+#include <cstdlib>
 
 namespace fs = std::filesystem;
 
 int main()
 {
+    // configuration
+    std::string inputPath;
+
+    std::cout << "=======================================" << std::endl;
+    std::cout << "    FILE ORGANIZER - CONFIGURATION     " << std::endl;
+    std::cout << "=======================================" << std::endl;
+    std::cout << "Enter the absolute path of the folder to organize \n";
+    std::cout << "(Or press ENTER to use your system's default Downloads folder): ";
+
+    std::getline(std::cin, inputPath);
+
+    if (inputPath.empty())
+    {
+        std::string homeDir;
+
+        #if defined(_WIN32) || defined(_WIN64)
+        // windows
+            const char* userProfile = getenv("USERPROFILE");
+            if (userProfile) homeDir = userProfile;
+            inputPath = homeDir + "\\Downloads";
+
+        #else
+        // macos/linux
+            const char* home = std::getenv("HOME");
+            if (home) homeDir = home;
+            inputPath = homeDir + "/Downloads";
+
+        #endif
+    }
+
+    fs::path targetFolder(inputPath);
+
+    if (!fs::exists(targetFolder))
+    {
+        std::cerr << "\n[ERROR] The folder '" << targetFolder.string() << "' does not exist!" << std::endl;
+        return 1;
+    }
+
+    // --------------
+
+
     // define the path of the folder that I want to scan
-    const std::string path = "/Users/matteo/Downloads";
+    // const std::string path = "/Users/matteo/Downloads";
     // convert the string to a path object recognised by C++
-    fs::path targetFolder(path);
+
 
     // check if the folder exists to avoid crash
+    /*
     if (!fs::exists(targetFolder))
     {
         std::cout << "Error: The folder does not exist!" << std::endl;
         return 1;
     }
+    */
 
     fs::path imagesFolder = targetFolder / "images";
     fs::path docFolder = targetFolder / "documents";

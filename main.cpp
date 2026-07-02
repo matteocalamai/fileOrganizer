@@ -1,8 +1,10 @@
 #include <filesystem>
 #include <iostream>
 #include <unordered_set>
+#include <unordered_map>
 #include <string>
 #include <cstdlib>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -48,35 +50,20 @@ int main()
 
     // --------------
 
-
-    // define the path of the folder that I want to scan
-    // const std::string path = "/Users/matteo/Downloads";
-    // convert the string to a path object recognised by C++
-
-
-    // check if the folder exists to avoid crash
-    /*
-    if (!fs::exists(targetFolder))
-    {
-        std::cout << "Error: The folder does not exist!" << std::endl;
-        return 1;
-    }
-    */
-
-    fs::path imagesFolder = targetFolder / "images";
-    fs::path docFolder = targetFolder / "documents";
-    fs::path zipFolder = targetFolder / "zipFiles";
-
-    const std::unordered_set<std::string> imagesExtensions = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"};
-    const std::unordered_set<std::string> docExtensions = {".pdf", ".txt", ".doc", ".docx", ".md"};
-    const std::unordered_set<std::string> zipExtensions = {".zip", ".7z", ".rar", ".gz", ".bz2"};
+    const std::unordered_map<std::string, std::unordered_set<std::string>> categories = {
+        {"documents",  {".pdf", ".docx", ".doc", ".txt", ".rtf", ".odt"}},
+        {"images",     {".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp"}},
+        {"archives",   {".zip", ".tar", ".gz", ".7z", ".rar", ".bz2", ".tgz"}},
+        {"installers", {".dmg", ".pkg", ".exe", ".msi"}},
+        {"code",       {".cpp", ".h", ".py", ".java", ".html", ".css", ".js", ".json", ".sh"}},
+        {"media",      {".mp3", ".mp4", ".m4a", ".mkv", ".mov", ".avi"}}
+    };
 
     std::cout << "--- Folder: " << targetFolder << " ---" << std::endl;
 
     // go through the whole directory and print every file that's in it
     for (const auto& element : fs::directory_iterator(targetFolder))
     {
-
         if (fs::is_regular_file(element))
         {
             std::cout << "[FILE] " << element.path().filename().string() << std::endl;
@@ -85,43 +72,34 @@ int main()
             fs::path filePath = element.path();
             fs::path fileName = element.path().filename();
 
-            try
+            // convert file extensions to lower case
+            std::string extStr = fileExtension.string();
+            std::transform(extStr.begin(), extStr.end(), extStr.begin(), ::tolower);
+
+            for (const auto& pair : categories)
             {
-                if (imagesExtensions.contains(fileExtension.string()))
+                const std::string& folderName = pair.first;
+                const std::unordered_set<std::string>& extensions = pair.second;
+
+                if (extensions.contains(extStr))
                 {
-                    // create the directory if it doesn't already exist
-                    fs::create_directory(imagesFolder);
+                    try
+                    {
+                        fs::path destinationFolder = targetFolder / folderName;
 
-                    // define the new file's path
-                    fs::path newPath = imagesFolder / fileName;
+                        fs::create_directory(destinationFolder);
+                        fs::path newPath = destinationFolder / fileName;
+                        fs::rename(filePath, newPath);
 
-                    // move the file
-                    fs::rename(filePath, newPath);
+                        std::cout << "[MOVED] " << fileName << " to " << folderName << std::endl;
 
-                    std::cout << "[MOVED] " << fileName << " to images" << std::endl;
+                        break;
+                    }
+                    catch (const fs::filesystem_error& e)
+                    {
+                        std::cerr << "[ERROR] Unable to move file: " << fileName << " to " << folderName << "\nReason: " << e.what() << std::endl;
+                    }
                 }
-
-                else if (docExtensions.contains(fileExtension.string()))
-                {
-                    fs::create_directory(docFolder);
-                    fs::path newPath = docFolder / fileName;
-                    fs::rename(filePath, newPath);
-
-                    std::cout << "[MOVED] " << fileName << " to documents" << std::endl;
-                }
-
-                else if (zipExtensions.contains(fileExtension.string()))
-                {
-                    fs::create_directory(zipFolder);
-                    fs::path newPath = zipFolder / fileName;
-                    fs::rename(filePath, newPath);
-
-                    std::cout << "[MOVED] " << fileName << " to zipFiles" << std::endl;
-                }
-            }
-            catch (const fs::filesystem_error& e)
-            {
-                std::cerr << "[ERROR] Unable to move the file " << fileName << std::endl << "Reason: " << e.what() << std::endl;
             }
         }
     }

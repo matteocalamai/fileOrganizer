@@ -61,7 +61,6 @@ int main()
 
     std::cout << "--- Folder: " << targetFolder << " ---" << std::endl;
 
-    // go through the whole directory and print every file that's in it
     for (const auto& element : fs::directory_iterator(targetFolder))
     {
         if (fs::is_regular_file(element))

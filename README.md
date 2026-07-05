@@ -9,4 +9,3 @@ A fast, cross-platform command-line tool built in modern C++ to clean up messy d
 
 ## 📈 Future Improvements
 * Add background monitoring (daemon mode) to sort incoming files in real-time.
-* Implement a JSON configuration file for custom routing rules.
